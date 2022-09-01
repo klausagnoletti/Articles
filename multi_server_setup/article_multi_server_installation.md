@@ -15,9 +15,7 @@ In this article we will call the 'main' agent the LAPI server.
 
 In this article we'll describe how to deploy CrowdSec in a multi-agent setup with one agent sharing signals with others.
 
-> Insert network diagram here
-
-![](https://crowdsec.net/wp-content/uploads/2021/04/Capture-de%CC%81cran-2021-04-26-a%CC%80-17.34.06-3486723453-1619451504593.png)
+> [Insert network diagram here]
 
 Both `agent-2` and `agent-3` are meant to host services. You can take a look on our [Hub](https://hub.crowdsec.net/)  to know which services CrowdSec can help you secure. Last but not least, `agent-1` is meant to host the following local services:
 
@@ -96,7 +94,7 @@ First we have to configure CrowdSec on LAPI server to accept connections from `a
 
 Let's configure the LAPI server as well as the agent configuration on that server (`agent-1`). Modify both `/etc/crowdsec/config.yaml` and `/etc/crowdsec/local_api_credentials.yaml`.
 
-For `/etc/crowdsec/config.yaml` edit the API section. It's only a matter of updating the listening ip from localhost to all ips:
+For `/etc/crowdsec/config.yaml` edit the API section. It's only a matter of updating the listening ip from `localhost` to all ips:
 
 ```yaml
 api:
@@ -111,7 +109,7 @@ api:
       credentials_path: /etc/crowdsec/online_api_credentials.yaml
 ```
 
-For `/etc/crowdsec/local_api_credentials.yaml` on all three servers we have to change the configured URL:
+We need to change the cofigured URL in `/etc/crowdsec/local_api_credentials.yaml` on all three endpoints:
 
 ```yaml
 url: http://10.0.0.1:8080/
@@ -124,9 +122,10 @@ After that we can restart CrowdSec:
 
 ```console
 $ sudo systemctl restart crowdsec
-
 ```
+
 Now we will configure the connections on `agent-2` and `agent-3`.
+
 First we register to the lapi server on both `agent-2` and `agent-3`:
 
 ```console
@@ -173,9 +172,9 @@ $ sudo cscli machines list
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  NAME                                              IP ADDRESS     LAST UPDATE           STATUS  VERSION                                                                 AUTH TYPE  LAST HEARTBEAT 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 3ac4e593172c4cdfb51cd8d8b2d9d5f2anhrb3Cl21kMkT6A  10.0.0.1  2022-08-25T18:44:27Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   37s            
- 3ae4c4a86efc4a45abb75ce2c2a30057ST4IQonK81521ylV  10.0.0.2   2022-08-25T18:38:24Z  🚫                                                                              password   ⚠️  6m40s        
- caf1b0ce5e4f4a17a77ddad7c0100558SWr9eQgiovQNqf9w  10.0.0.3   2022-08-25T18:40:50Z  🚫                                                                              password   ⚠️  4m14s        
+ 3ac4e593172c4cdfb51cd8d8b2d9d5f2anhrb3Cl21kMkT6A  10.0.0.1  2022-08-31T08:45:27Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   37s            
+ 3ae4c4a86efc4a45abb75ce2c2a30057ST4IQonK81521ylV  10.0.0.2   2022-08-31T08:44:24Z  🚫                                                                              password   ⚠️  6m40s        
+ caf1b0ce5e4f4a17a77ddad7c0100558SWr9eQgiovQNqf9w  10.0.0.3   2022-08-31T08:45:50Z  🚫                                                                              password   ⚠️  4m14s        
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -199,26 +198,32 @@ $ sudo cscli machines list
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  NAME                                              IP ADDRESS     LAST UPDATE           STATUS  VERSION                                                                 AUTH TYPE  LAST HEARTBEAT 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 3ac4e593172c4cdfb51cd8d8b2d9d5f2anhrb3Cl21kMkT6A  10.0.0.1  2022-08-25T18:47:27Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   10s            
- 3ae4c4a86efc4a45abb75ce2c2a30057ST4IQonK81521ylV  10.0.0.2   2022-08-25T18:46:49Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   48s            
- caf1b0ce5e4f4a17a77ddad7c0100558SWr9eQgiovQNqf9w  10.0.0.3   2022-08-25T18:47:31Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   6s             
+ 3ac4e593172c4cdfb51cd8d8b2d9d5f2anhrb3Cl21kMkT6A  10.0.0.1  2022-08-31T08:47:27Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   10s            
+ 3ae4c4a86efc4a45abb75ce2c2a30057ST4IQonK81521ylV  10.0.0.2   2022-08-31T08:46:49Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   48s            
+ caf1b0ce5e4f4a17a77ddad7c0100558SWr9eQgiovQNqf9w  10.0.0.3   2022-08-31T08:47:31Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  password   6s             
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
+
 ## Step 4: Set up TLS authentification
 
 We now have three agents able to communicate to the main LAPI server using clear-text communication. In a secure production environment this is a no-go so we have to change to a certificate based infrastructure. In this example we will be creating all certificates ourselves. In a real production environment this will be done by your PKI. The procedure will vary so we won't cover that in our article; just the procedure of creating test certificates and configuring each agent to use those.
 
 We will be creating certificates on LAPI server aka `agent-1`. For this we will be using the tool [cfssl](https://github.com/cloudflare/cfssl). Luckily it's available in Debian:
-```
+
+```console
 $ sudo apt install golang-cfssl
 ```
+
 Next, create a directory for certificate config files
-```
+
+```console
 $ mkdir cfssl
 ```
+
 Create the following files inside that directory
 
 ```profiles.json```
+
 ```json
 {
     "signing": {
@@ -265,7 +270,9 @@ Create the following files inside that directory
     }
   }
 ```
+
 `ca.json` defines basic properties of our CA:
+
 ```json
 {
   "CN": "CrowdSec Test CA",
@@ -284,7 +291,9 @@ Create the following files inside that directory
  ]
 }
 ```
+
 `intermediate.json` defines our intermediate cert:
+
 ```json
 {
     "CN": "CrowdSec Test CA Intermediate",
@@ -332,6 +341,7 @@ With `server.json` things start to get a little complicated if you're using a di
     ]
   }
 ```
+
 Lastly here's the certs of agents and bouncers. Each agent and bouncer should have their own cert but I'll only paste one of each so you will have to change the CN of each to match.
 
 ``agent[123].json``
@@ -353,6 +363,7 @@ Lastly here's the certs of agents and bouncers. Each agent and bouncer should ha
     ]
   }
 ```
+
 `bouncer-agent[123].json`
 ```json
 {
@@ -461,15 +472,15 @@ $ sudo tail -f /var/log/crowdsec.log
 ```
 
 ```log
-time="29-08-2022 10:42:58" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
-time="29-08-2022 10:42:58" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
-time="29-08-2022 10:42:58" level=info msg="machine agent-1@10.0.0.1 not found, create it"
-time="29-08-2022 10:43:46" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
-time="29-08-2022 10:43:46" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
-time="29-08-2022 10:44:19" level=info msg="machine agent-2@10.0.0.2 not found, create it"
-time="29-08-2022 10:44:19" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
-time="29-08-2022 10:44:19" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
-time="29-08-2022 10:44:19" level=info msg="machine agent-3@10.0.0.3 not found, create it"
+time="31-08-2022 09:02:58" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
+time="31-08-2022 09:02:58" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
+time="31-08-2022 09:02:58" level=info msg="machine agent-1@10.0.0.1 not found, create it"
+time="31-08-2022 09:03:46" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
+time="31-08-2022 09:03:46" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
+time="31-08-2022 09:04:19" level=info msg="machine agent-2@10.0.0.2 not found, create it"
+time="31-08-2022 09:04:19" level=info msg="TLSAuth: no OCSP Server present in client certificate, skipping OCSP verification" component=tls-auth type=agent
+time="31-08-2022 09:04:19" level=warning msg="no crl_path, skipping CRL check" component=tls-auth type=agent
+time="31-08-2022 09:04:19" level=info msg="machine agent-3@10.0.0.3 not found, create it"
 ```
 
 
@@ -479,9 +490,9 @@ To verify all agents are connected do `sudo cscli machines list`:
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
  NAME                   IP ADDRESS     LAST UPDATE           STATUS  VERSION                                                                 AUTH TYPE  LAST HEARTBEAT 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
- agent-1@10.0.0.1  10.0.0.1  2022-08-31T08:21:14Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        4s             
- agent-2@10.0.0.2   10.0.0.2   2022-08-31T08:20:31Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        47s            
- agent-3@10.0.0.3   10.0.0.3   2022-08-31T08:20:51Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        27s            
+ agent-1@10.0.0.1  10.0.0.1  2022-08-31T09:03:14Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        4s             
+ agent-2@10.0.0.2   10.0.0.2   2022-08-31T09:03:31Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        47s            
+ agent-3@10.0.0.3   10.0.0.3   2022-08-31T09:03:51Z  ✔️       v1.4.1-debian-pragmatic-linux-e1954adc325baa9e3420c324caabd50b7074dd77  tls        27s            
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -496,7 +507,7 @@ $ sudo apt install crowdsec-firewall-bouncer-nftables
 Configure `/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml`:
 
 ```yaml
-api_url: https://172.31.46.130:8080/
+api_url: https://10.0.0.1:8080/
 cert_path: /etc/ssl/certs/bouncer-agent-[123].pem
 key_path: /etc/ssl/certs/bouncer-agent-[123]-key.pem
 ca_cert_path: /etc/ssl/certs/fullchain.pem
@@ -512,8 +523,8 @@ $ sudo systemctl restart crowdsec-firewall-bouncer
 Watch the `/var/log/crowdsec-firewall-bouncer.log` for any error messages. If everything works you'll just see this:
 
 ```log
-time="31-08-2022 09:45:03" level=info msg="Using cert auth with cert '/etc/ssl/certs/bouncer-agent-1.pem' and key '/etc/ssl/certs/bouncer-agent-1-key.pem'"
-time="31-08-2022 09:45:03" level=info msg="Using CA cert '/etc/ssl/certs/fullchain.pem'"
+time="31-08-2022 09:05:03" level=info msg="Using cert auth with cert '/etc/ssl/certs/bouncer-agent-1.pem' and key '/etc/ssl/certs/bouncer-agent-1-key.pem'"
+time="31-08-2022 09:05:03" level=info msg="Using CA cert '/etc/ssl/certs/fullchain.pem'"
 ```
 
 To make sure all bouncers are added, list them using `cscli`
@@ -523,9 +534,9 @@ klaus@server1:/tmp$ sudo cscli bouncers list
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  NAME                           IP ADDRESS     VALID  LAST API PULL         TYPE                       VERSION                                                                AUTH TYPE 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- bouncer-agent-1@10.0.0.1  10.0.0.1  ✔️      2022-08-31T10:18:33Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
- bouncer-agent-2@10.0.0.2   10.0.0.2   ✔️      2022-08-31T10:18:29Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
- bouncer-agent-3@10.0.0.3   10.0.0.3   ✔️      2022-08-31T10:18:25Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
+ bouncer-agent-1@10.0.0.1  10.0.0.1  ✔️      2022-08-31T09:18:33Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
+ bouncer-agent-2@10.0.0.2   10.0.0.2   ✔️      2022-08-31T09:18:29Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
+ bouncer-agent-3@10.0.0.3   10.0.0.3   ✔️      2022-08-31T09:18:25Z  crowdsec-firewall-bouncer  v0.0.25-rc1-debian-pragmatic-8e00af2c9e83af22deab8c0c49a4ad9b8fc57a3f  tls       
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
